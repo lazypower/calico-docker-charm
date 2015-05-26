@@ -1,0 +1,6 @@
+- hosts: all
+  tasks:
+
+      - include: config-changed.yaml
+        tags:
+          - config-changed

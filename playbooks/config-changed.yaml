@@ -1,0 +1,13 @@
+---
+
+    - name: Pull CalicoNode image
+      docker:
+          name=caliconode
+          image={{ docker_image }}
+          state=present
+
+    - name: Pull CalicoCTL
+      get_url: url={{calicoctl_package}} sha256sum={{calicoctl_sum}} dest="/usr/local/bin/calicoctl"
+
+    - name: Set Permissions on CalicoCTL
+      file: path="/usr/local/bin/calicoctl" mode="0755"
