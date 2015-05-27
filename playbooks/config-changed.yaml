@@ -3,6 +3,11 @@
     - set_fact:
         db_relation: "{{ relations.db | default([]) }}"
 
+    - set_fact:
+        etcd_authority: "{{ relations.db[0].hostname }}:{{ relations.db[0].port }}"
+      when: db_relation != []
+
+
     - name: Pull CalicoNode image
       docker:
           name=caliconode
@@ -25,10 +30,12 @@
       command: "$CHARM_DIR/scripts/container-status.py -t calico-node"
       register: caliconode_status
 
-    - debug: msg="{{caliconode_status}}"
-
     - name: Start calico node
-      command: calicoctl node --ip=172.17.8.101
+      command: calicoctl node --ip={{unit_private_address}}
       environment:
         ETCD_AUTHORITY: "{{ relations.db[0].hostname }}:{{ relations.db[0].port }}"
       when: db_relation != [] and caliconode_status.stdout == ""
+
+    - name: Render Action Config Template
+      template: src=action-config.sh.jinja2 dest=/etc/action-config.sh
+      when: db_relation != []
