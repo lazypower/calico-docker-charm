@@ -4,3 +4,8 @@
       - include: config-changed.yaml
         tags:
           - config-changed
+          - db-relation-changed
+
+      - include: stop.yaml
+        tags:
+          - stop

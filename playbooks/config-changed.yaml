@@ -1,5 +1,8 @@
 ---
 
+    - set_fact:
+        db_relation: "{{ relations.db | default([]) }}"
+
     - name: Pull CalicoNode image
       docker:
           name=caliconode
@@ -11,3 +14,21 @@
 
     - name: Set Permissions on CalicoCTL
       file: path="/usr/local/bin/calicoctl" mode="0755"
+
+    - name: load kernel modules
+      command: modprobe {{item}}
+      with_items:
+          - ip6_tables
+          - xt_set
+
+    - name: Check status of CalicoNode Container
+      command: "$CHARM_DIR/scripts/container-status.py -t calico-node"
+      register: caliconode_status
+
+    - debug: msg="{{caliconode_status}}"
+
+    - name: Start calico node
+      command: calicoctl node --ip=172.17.8.101
+      environment:
+        ETCD_AUTHORITY: "{{ relations.db[0].hostname }}:{{ relations.db[0].port }}"
+      when: db_relation != [] and caliconode_status.stdout == ""
